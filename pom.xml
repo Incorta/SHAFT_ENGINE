@@ -7,7 +7,7 @@
 	<version>123</version>
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>Selenium Hybrid Automation Framework for Testing [SHAFT]</description>
-	<url>https://github.com/MohabMohie/SHAFT_ENGINE</url>
+	<url>https://github.com/Incorta/SHAFT_ENGINE</url>
 	<licenses>
 		<license>
 			<name>MIT License</name>
