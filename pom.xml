@@ -19,13 +19,13 @@
 			<name>Mohab Mohie</name>
 			<email>Mohab.MohieElDeen@outlook.com</email>
 			<organization>GitHub</organization>
-			<organizationUrl>https://github.com/MohabMohie</organizationUrl>
+			<organizationUrl>https://github.com/Incorta</organizationUrl>
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git://github.com/MohabMohie/SHAFT_ENGINE.git</connection>
-		<developerConnection>scm:git:ssh://github.com/MohabMohie/SHAFT_ENGINE.git</developerConnection>
-		<url>http://github.com/MohabMohie/SHAFT_ENGINE/tree/master</url>
+		<connection>scm:git:git://github.com/Incorta/SHAFT_ENGINE.git</connection>
+		<developerConnection>scm:git:ssh://github.com/Incorta/SHAFT_ENGINE.git</developerConnection>
+		<url>http://github.com/Incorta/SHAFT_ENGINE/tree/master</url>
 	</scm>
 
 	<properties>
