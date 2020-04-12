@@ -26,6 +26,8 @@ public class TerminalActions {
 
     private String dockerName = "";
     private String dockerUsername;
+    
+    private String hostPassword = "";
 
     /**
      * This constructor is used for local terminal actions.
@@ -103,6 +105,24 @@ public class TerminalActions {
 	this.dockerName = dockerName;
 	this.dockerUsername = dockerUsername;
     }
+    
+    
+	/**
+	 * This constructor is used for remote terminal actions on WINDOWS.
+	 * 
+	 * @param sshHostName   the IP address or host name for the remote machine you
+	 *                      want to execute the terminal command on.
+	 * @param sshUsername   the username which will be used to access the target
+	 *                      machine via ssh. Must have the access/privilege to
+	 *                      execute the terminal command
+	 * @param hostPassword  the password which will be used to access the target
+	 *                      machine.
+	 */
+    public TerminalActions(String sshHostName, String sshUsername, String hostPassword) {
+	this.sshHostName = sshHostName;
+	this.sshUsername = sshUsername;
+	this.hostPassword = hostPassword;
+    }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////// [private] Reporting Actions
@@ -177,6 +197,9 @@ public class TerminalActions {
 		jsch.addIdentity(FileActions.getAbsolutePath(sshKeyFileFolderName, sshKeyFileName));
 	    }
 	    session = jsch.getSession(sshUsername, sshHostName, sshPortNumber);
+	    if(hostPassword!=null && !hostPassword.equals("")) {
+	    session.setPassword(hostPassword);
+	    }
 	    session.setConfig(config);
 	    session.connect();
 	    ReportManager.logDiscrete("Successfully created SSH Session.");

@@ -63,15 +63,15 @@ public class InvokedMethodListener implements IInvokedMethodListener {
 		    testMethod.getMethodName());
 	}
 	// implementing the new kill switch at the start of every test method
-	if (BrowserFactory.isKillSwitch()) {
-	    throw new SkipException("Skipping Test: " + testResult.getName());
-	}
+//	if (BrowserFactory.isKillSwitch()) {
+//	    throw new SkipException("Skipping Test: " + testResult.getName());
+//	}
     }
 
     @Override
     public void afterInvocation(IInvokedMethod method, ITestResult testResult) {
 	if (!method.getTestMethod().getQualifiedName().contains("closureActivities")) {
-	    BrowserFactory.attachAnimatedGif();
+	    //BrowserFactory.attachAnimatedGif();
 	    ReportManager.attachTestLog();
 	}
 

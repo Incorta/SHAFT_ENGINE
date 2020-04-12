@@ -18,14 +18,14 @@ public class Test_Appium2 {
     private By viewsButton = By.xpath("//android.widget.TextView[@content-desc='Views']");
     private By webView3 = By.xpath("//android.widget.TextView[@content-desc='WebView3']");
 
-    @Test
-    public void verifyLandingPageContent() {
-	Verifications.verifyElementExists(driver, accessibilityButton, VerificationType.POSITIVE);
-	ElementActions.performTouchAction(driver).swipeElementIntoView(viewsButton, SwipeDirection.DOWN);
-	Verifications.verifyElementExists(driver, viewsButton, VerificationType.POSITIVE);
-	ElementActions.performTouchAction(driver).tap(viewsButton);
-	ElementActions.performTouchAction(driver).swipeElementIntoView(webView3, SwipeDirection.DOWN).tap(webView3);
-    }
+//    @Test
+//    public void verifyLandingPageContent() {
+//	Verifications.verifyElementExists(driver, accessibilityButton, VerificationType.POSITIVE);
+//	ElementActions.performTouchAction(driver).swipeElementIntoView(viewsButton, SwipeDirection.DOWN);
+//	Verifications.verifyElementExists(driver, viewsButton, VerificationType.POSITIVE);
+//	ElementActions.performTouchAction(driver).tap(viewsButton);
+//	ElementActions.performTouchAction(driver).swipeElementIntoView(webView3, SwipeDirection.DOWN).tap(webView3);
+//    }
 
     @BeforeClass
     public void setup() {

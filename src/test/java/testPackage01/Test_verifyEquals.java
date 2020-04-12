@@ -14,22 +14,22 @@ public class Test_verifyEquals {
     // Declaring webdriver instance
     WebDriver driver;
 
-    @Test
-    public void test_assertElementAttribute() {
-	BrowserActions.navigateToURL(driver, "https://www.google.com/ncr", "https://www.google.com");
-	ElementActions.type(driver, By.name("q"),
-		"INC_004010050:Another SCHEDULER with the same name [Duplicate Job Name] already exists.");
-	Verifications.verifyElementAttribute(driver, By.name("q"), "text",
-		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.", 2, true);
-	Verifications.verifyElementAttribute(driver, By.name("q"), "text",
-		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.aaaaaa", 2,
-		true);
-	Verifications.verifyElementAttribute(driver, By.name("q"), "text",
-		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.", 2, true);
-	Verifications.verifyElementAttribute(driver, By.name("q"), "text",
-		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.aaaaaa", 2,
-		true);
-    }
+//    @Test
+//    public void test_assertElementAttribute() {
+//	BrowserActions.navigateToURL(driver, "https://www.google.com/ncr", "https://www.google.com");
+//	ElementActions.type(driver, By.name("q"),
+//		"INC_004010050:Another SCHEDULER with the same name [Duplicate Job Name] already exists.");
+//	Verifications.verifyElementAttribute(driver, By.name("q"), "text",
+//		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.", 2, true);
+//	Verifications.verifyElementAttribute(driver, By.name("q"), "text",
+//		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.aaaaaa", 2,
+//		true);
+//	Verifications.verifyElementAttribute(driver, By.name("q"), "text",
+//		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.", 2, true);
+//	Verifications.verifyElementAttribute(driver, By.name("q"), "text",
+//		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.aaaaaa", 2,
+//		true);
+//    }
 
     // @Test
     public void test_assertEquals() {

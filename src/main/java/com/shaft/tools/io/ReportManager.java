@@ -374,7 +374,7 @@ public class ReportManager {
 	    FileActions.deleteFolder("target/allure/");
 	    // download allure binary
 	    URL allureArchive = FileActions.downloadFile(
-		    "http://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/" + allureVersion
+		    "https://repo1.maven.org/maven2/io/qameta/allure/allure-commandline/" + allureVersion
 			    + "/allure-commandline-" + allureVersion + ".zip",
 		    "target/allureBinary.zip");
 	    FileActions.unpackArchive(allureArchive, "target/allure/");
