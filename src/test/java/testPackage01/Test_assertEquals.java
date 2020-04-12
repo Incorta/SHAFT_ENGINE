@@ -15,14 +15,14 @@ public class Test_assertEquals {
     // Declaring webdriver instance
     WebDriver driver;
 
-    @Test
-    public void test_assertElementAttribute() {
-	BrowserActions.navigateToURL(driver, "https://www.google.com/ncr");
-	ElementActions.type(driver, By.id("lst-ib"),
-		"INC_004010050:Another SCHEDULER with the same name [Duplicate Job Name] already exists.");
-	Assertions.assertElementAttribute(driver, By.id("lst-ib"), "text",
-		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.", 2, true);
-    }
+//    @Test
+//    public void test_assertElementAttribute() {
+//	BrowserActions.navigateToURL(driver, "https://www.google.com/ncr");
+//	ElementActions.type(driver, By.id("lst-ib"),
+//		"INC_004010050:Another SCHEDULER with the same name [Duplicate Job Name] already exists.");
+//	Assertions.assertElementAttribute(driver, By.id("lst-ib"), "text",
+//		"INC_004010050:Another SCHEDULER with the same name \\[Duplicate Job Name\\] already exists.", 2, true);
+//    }
 
     // @Test
     public void test_assertEquals() {

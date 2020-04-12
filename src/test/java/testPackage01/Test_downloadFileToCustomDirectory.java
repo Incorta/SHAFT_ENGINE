@@ -14,17 +14,17 @@ import com.shaft.validation.Assertions;
 public class Test_downloadFileToCustomDirectory {
     WebDriver driver;
 
-    @Test
-    public void downloadFile() {
-	BrowserActions.navigateToURL(driver, "https://sample-videos.com/download-sample-doc-file.php");
-
-//	ElementActions.click(driver, By.xpath("//a[@href='doc/Sample-doc-file-100kb.doc']"));
-//	Assertions.assertFileExists(System.getProperty("downloadsFolderPath"), "SampleDOCFile_100kb.doc", 10, true);
-
-	ElementActions.click(driver, By.xpath("//a[@href='doc/Sample-doc-file-5000kb.doc']"));
-	Assertions.assertFileExists(System.getProperty("downloadsFolderPath"), "SampleDOCFile_5000kb.doc", 100, true);
-
-    }
+//    @Test
+//    public void downloadFile() {
+//	BrowserActions.navigateToURL(driver, "https://sample-videos.com/download-sample-doc-file.php");
+//
+////	ElementActions.click(driver, By.xpath("//a[@href='doc/Sample-doc-file-100kb.doc']"));
+////	Assertions.assertFileExists(System.getProperty("downloadsFolderPath"), "SampleDOCFile_100kb.doc", 10, true);
+//
+//	ElementActions.click(driver, By.xpath("//a[@href='doc/Sample-doc-file-5000kb.doc']"));
+//	Assertions.assertFileExists(System.getProperty("downloadsFolderPath"), "SampleDOCFile_5000kb.doc", 100, true);
+//
+//    }
 
     @BeforeClass // Set-up method, to be run once before the first test
     public void beforeClass() {

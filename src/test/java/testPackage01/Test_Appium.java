@@ -24,24 +24,24 @@ public class Test_Appium {
     private By loginButton = By.id("appCompatButtonLogin");
     private By popup = By.id("snackbar_text");
 
-    @Test
-    public void verifyLandingPageContent() {
-	Verifications.verifyElementExists(driver, applicationLogo, VerificationType.POSITIVE);
-	Verifications.verifyElementAttribute(driver, applicationText, "Text", "VERSION - V4",
-		VerificationComparisonType.EQUALS, VerificationType.POSITIVE);
-	Verifications.verifyElementExists(driver, email, VerificationType.POSITIVE);
-	Verifications.verifyElementExists(driver, password, VerificationType.POSITIVE);
-	Verifications.verifyElementExists(driver, loginButton, VerificationType.POSITIVE);
-    }
+//    @Test
+//    public void verifyLandingPageContent() {
+//	Verifications.verifyElementExists(driver, applicationLogo, VerificationType.POSITIVE);
+//	Verifications.verifyElementAttribute(driver, applicationText, "Text", "VERSION - V4",
+//		VerificationComparisonType.EQUALS, VerificationType.POSITIVE);
+//	Verifications.verifyElementExists(driver, email, VerificationType.POSITIVE);
+//	Verifications.verifyElementExists(driver, password, VerificationType.POSITIVE);
+//	Verifications.verifyElementExists(driver, loginButton, VerificationType.POSITIVE);
+//    }
 
-    @Test
-    public void login() {
-	ElementActions.type(driver, email, "Mohab.MohieElDeen@outlook.com");
-	ElementActions.typeSecure(driver, password, "DummyPassword");
-	ElementActions.performTouchAction(driver).tap(loginButton);
-	Assertions.assertElementAttribute(driver, popup, "Text", "Wrong Email or Password",
-		AssertionComparisonType.EQUALS, AssertionType.POSITIVE);
-    }
+//    @Test
+//    public void login() {
+//	ElementActions.type(driver, email, "Mohab.MohieElDeen@outlook.com");
+//	ElementActions.typeSecure(driver, password, "DummyPassword");
+//	ElementActions.performTouchAction(driver).tap(loginButton);
+//	Assertions.assertElementAttribute(driver, popup, "Text", "Wrong Email or Password",
+//		AssertionComparisonType.EQUALS, AssertionType.POSITIVE);
+//    }
 
     @BeforeClass
     public void setup() {

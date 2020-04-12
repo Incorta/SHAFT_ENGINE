@@ -15,16 +15,16 @@ public class Test_getElementsCount {
     GoogleSearch searchObject;
     GoogleSearchResults resultsObject;
 
-    @Test
-    public void assertElementsCount() {
-	searchObject = new GoogleSearch(driver); // initialize a new instance of the page
-	searchObject.navigateToURL(); // Navigate to Page URL
-
-	searchObject.searchForQuery("Selenium"); // Perform search for the query
-	resultsObject = new GoogleSearchResults(driver); // initialize a new instance of the page
-
-	resultsObject.assert10ResultsPerPage();
-    }
+//    @Test
+//    public void assertElementsCount() {
+//	searchObject = new GoogleSearch(driver); // initialize a new instance of the page
+//	searchObject.navigateToURL(); // Navigate to Page URL
+//
+//	searchObject.searchForQuery("Selenium"); // Perform search for the query
+//	resultsObject = new GoogleSearchResults(driver); // initialize a new instance of the page
+//
+//	resultsObject.assert10ResultsPerPage();
+//    }
 
     @BeforeClass // Set-up method, to be run once before the first test
     public void beforeClass() {
