@@ -1,22 +1,22 @@
 package com.shaft.cli;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-
-import org.testng.Assert;
-
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.shaft.driver.ShaftDriver;
+import com.shaft.tools.io.PropertyFileManager;
 import com.shaft.tools.io.ReportManager;
+import com.shaft.tools.io.ReportManagerHelper;
+import org.testng.Assert;
 
-public class TerminalActions {
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+@SuppressWarnings("unused")
+public class TerminalActions implements ShaftDriver {
     private String sshHostName = "";
     private String sshUsername;
     private String sshKeyFileFolderName;
@@ -26,6 +26,8 @@ public class TerminalActions {
     private String dockerName = "";
     private String dockerUsername;
 
+    private boolean unattended = false;
+
     /**
      * This constructor is used for local terminal actions.
      */
@@ -33,8 +35,17 @@ public class TerminalActions {
     }
 
     /**
+     * This constructor is used for local terminal actions.
+     *
+     * @param unattended true for unattended execution of commands in a separate thread
+     */
+    public TerminalActions(boolean unattended) {
+        this.unattended = unattended;
+    }
+
+    /**
      * This constructor is used for local terminal actions inside a docker.
-     * 
+     *
      * @param dockerName     the name of the docker instance that you want to
      *                       execute the terminal command inside
      * @param dockerUsername the username which will be used to access the docker
@@ -42,13 +53,13 @@ public class TerminalActions {
      *                       terminal command
      */
     public TerminalActions(String dockerName, String dockerUsername) {
-	this.dockerName = dockerName;
-	this.dockerUsername = dockerUsername;
+        this.dockerName = dockerName;
+        this.dockerUsername = dockerUsername;
     }
 
     /**
      * This constructor is used for remote terminal actions.
-     * 
+     *
      * @param sshHostName          the IP address or host name for the remote
      *                             machine you want to execute the terminal command
      *                             on.
@@ -63,17 +74,17 @@ public class TerminalActions {
      * @param sshKeyFileName       the name of the ssh key file
      */
     public TerminalActions(String sshHostName, int sshPortNumber, String sshUsername, String sshKeyFileFolderName,
-	    String sshKeyFileName) {
-	this.sshHostName = sshHostName;
-	this.sshPortNumber = sshPortNumber;
-	this.sshUsername = sshUsername;
-	this.sshKeyFileFolderName = sshKeyFileFolderName;
-	this.sshKeyFileName = sshKeyFileName;
+                           String sshKeyFileName) {
+        this.sshHostName = sshHostName;
+        this.sshPortNumber = sshPortNumber;
+        this.sshUsername = sshUsername;
+        this.sshKeyFileFolderName = sshKeyFileFolderName;
+        this.sshKeyFileName = sshKeyFileName;
     }
 
     /**
      * This constructor is used for remote terminal actions inside a docker.
-     * 
+     *
      * @param sshHostName          the IP address or host name for the remote
      *                             machine you want to execute the terminal command
      *                             on.
@@ -93,258 +104,282 @@ public class TerminalActions {
      *                             to execute the terminal command
      */
     public TerminalActions(String sshHostName, int sshPortNumber, String sshUsername, String sshKeyFileFolderName,
-	    String sshKeyFileName, String dockerName, String dockerUsername) {
-	this.sshHostName = sshHostName;
-	this.sshPortNumber = sshPortNumber;
-	this.sshUsername = sshUsername;
-	this.sshKeyFileFolderName = sshKeyFileFolderName;
-	this.sshKeyFileName = sshKeyFileName;
-	this.dockerName = dockerName;
-	this.dockerUsername = dockerUsername;
+                           String sshKeyFileName, String dockerName, String dockerUsername) {
+        this.sshHostName = sshHostName;
+        this.sshPortNumber = sshPortNumber;
+        this.sshUsername = sshUsername;
+        this.sshKeyFileFolderName = sshKeyFileFolderName;
+        this.sshKeyFileName = sshKeyFileName;
+        this.dockerName = dockerName;
+        this.dockerUsername = dockerUsername;
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// [private] Reporting Actions
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    private static String reportActionResult(String actionName, String testData, String log, Boolean passFailStatus) {
+        actionName = actionName.substring(0, 1).toUpperCase() + actionName.substring(1);
+        String message;
+        if (Boolean.TRUE.equals(passFailStatus)) {
+            message = "Terminal Action [" + actionName + "] successfully performed.";
+        } else {
+            message = "Terminal Action [" + actionName + "] failed.";
+        }
 
-    private void passAction(String actionName, String testData, String log) {
-	String message = "Successfully performed action [" + actionName + "].";
-	if (testData != null) {
-	    message = message + " With the following test data [" + testData + "].";
-	}
+        List<List<Object>> attachments = new ArrayList<>();
+        if (testData != null && !testData.isEmpty() && testData.length() >= 500) {
+            List<Object> actualValueAttachment = Arrays.asList("Terminal Action Test Data - " + actionName,
+                    "Actual Value", testData);
+            attachments.add(actualValueAttachment);
+        } else if (testData != null && !testData.isEmpty()) {
+            message = message + " With the following test data [" + testData + "].";
+        }
 
-	if (actionName.toLowerCase().contains("createsshsession")) {
-	    ReportManager.logDiscrete(message);
-	    ReportManager.logDiscrete("CLI Response - Terminal Log:\n" + log);
-	}
+        if (log != null && !log.trim().equals("")) {
+            attachments.add(Arrays.asList("Terminal Action Actual Result", "Command Log", log));
+        }
 
-	Boolean discreetLogging = ReportManager.isDiscreteLogging();
-	if (actionName.toLowerCase().contains("performterminalcommand")) {
-	    if (discreetLogging) {
-		ReportManager.logDiscrete(message);
-		ReportManager.logDiscrete("CLI Response - Terminal Log:\n" + log);
-	    } else {
-		if ((log != null) && (!log.trim().equals(""))) {
-		    ReportManager.log(message, Arrays.asList(Arrays.asList("CLI Response", "Terminal Log", log)));
-		} else {
-		    ReportManager.log(message);
+        if (!attachments.equals(new ArrayList<>())) {
+            ReportManagerHelper.log(message, attachments);
+        } else {
+            ReportManager.log(message);
+        }
 
-		}
-	    }
-	}
-    }
-
-    private void passAction(String actionName, String testData) {
-	passAction(actionName, testData, null);
-    }
-
-    private void failAction(String actionName, String testData, String log) {
-	String message = "Failed to perform action [" + actionName + "].";
-	if (testData != null) {
-	    message = message + " With the following test data [" + testData + "].";
-	}
-	if ((log != null) && (!log.trim().equals(""))) {
-	    ReportManager.log(message, Arrays.asList(Arrays.asList("API Response", "Command Log", log)));
-	} else {
-	    ReportManager.log(message);
-	}
-	Assert.fail(message);
-    }
-
-    private void failAction(String actionName, String testData) {
-	failAction(actionName, testData, null);
-    }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// [private] Preparation and Support Actions
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private Session createSSHsession() {
-	Session session = null;
-	String testData = sshHostName + ", " + sshPortNumber + ", " + sshUsername + ", " + sshKeyFileFolderName + ", "
-		+ sshKeyFileName;
-	try {
-	    Properties config = new Properties();
-	    config.put("StrictHostKeyChecking", "no");
-	    JSch jsch = new JSch();
-
-	    jsch.addIdentity(FileActions.getAbsolutePath(sshKeyFileFolderName, sshKeyFileName));
-	    session = jsch.getSession(sshUsername, sshHostName, sshPortNumber);
-	    session.setConfig(config);
-
-	    session.connect();
-	    Boolean discreetLoggingState = ReportManager.isDiscreteLogging();
-	    ReportManager.setDiscreteLogging(true);
-	    passAction("createSSHsession", testData);
-	    ReportManager.setDiscreteLogging(discreetLoggingState);
-	} catch (JSchException e) {
-	    ReportManager.log(e);
-	    failAction("createSSHsession", testData);
-	}
-	return session;
+        return message;
     }
 
     public boolean isRemoteTerminal() {
-	return !sshHostName.equals("");
+        return !sshHostName.equals("");
     }
 
     public boolean isDockerizedTerminal() {
-	return !dockerName.equals("");
+        return !dockerName.equals("");
     }
-
-    private String buildLongCommand(List<String> commands) {
-	StringBuilder command = new StringBuilder();
-	// build long command
-	for (Iterator<String> i = commands.iterator(); i.hasNext();) {
-	    if (command.length() == 0) {
-		command = command.append(i.next());
-	    } else {
-		command = command.append(" && " + i.next());
-	    }
-	}
-
-	// refactor long command for dockerized execution
-	if (isDockerizedTerminal()) {
-	    command.insert(0, "docker exec -u " + dockerUsername + " -i " + dockerName + " timeout "
-		    + Integer.parseInt(System.getProperty("dockerCommandTimeout")) + " sh -c '");
-	    command.append("'");
-	}
-	return command.toString();
-    }
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// [Public] Core Terminal Actions
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public String performTerminalCommands(List<String> commands) {
-	StringBuilder logBuilder = new StringBuilder();
-	String log = "";
-	int sessionTimeout = Integer.parseInt(System.getProperty("shellSessionTimeout")) * 1000;
+        String log = null;
 
-	// Build long command and refactor for dockerized execution if needed
-	String command = buildLongCommand(commands);
+        // Build long command and refactor for dockerized execution if needed
+        String command = buildLongCommand(commands);
 
-	// Attempt to execute long command
-	try {
-	    // Declare Buffered Readers to track terminal session output
-	    BufferedReader reader;
-	    BufferedReader errorReader;
+        // Perform command
+        List<Object> teminalSession = executeCommand(command);
 
-	    // Declare Variables which will need to be destroyed at the end of the sessions
-	    Session session = null;
-	    ChannelExec channelExec = null;
-	    Process p = null;
+        String exitStatus = "unattended";
+        if (!unattended) {
+            // Capture logs and close readers
+            BufferedReader reader = (BufferedReader) teminalSession.get(3);
+            BufferedReader errorReader = (BufferedReader) teminalSession.get(4);
+            log = captureTerminalLogs(reader, errorReader, command);
 
-	    // Perform command
-	    if (isRemoteTerminal()) {
-		// remote execution
-		ReportManager.logDiscrete(
-			"Attempting to perform the following command remotely. Command: [" + command + "]");
-		session = createSSHsession();
-		session.setTimeout(sessionTimeout);
-		channelExec = (ChannelExec) session.openChannel("exec");
-		channelExec.setCommand(command);
-		channelExec.connect();
-		reader = new BufferedReader(new InputStreamReader(channelExec.getInputStream()));
-		errorReader = new BufferedReader(new InputStreamReader(channelExec.getErrStream()));
-	    } else {
-		// local execution
-		ReportManager
-			.logDiscrete("Attempting to perform the following command locally. Command: [" + command + "]");
-		p = Runtime.getRuntime().exec(command);
-		p.waitFor();
-		reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-	    }
+            // Retrieve the exit status of the executed command and destroy open sessions
+            Session remoteSession = (Session) teminalSession.get(0);
+            ChannelExec remoteChannelExecutor = (ChannelExec) teminalSession.get(1);
+            Process localProcess = (Process) teminalSession.get(2);
+            exitStatus = String.valueOf(getExitStatus(remoteSession, remoteChannelExecutor, localProcess));
+        }
+        // Prepare final log message
+        StringBuilder reportMessage = new StringBuilder();
+        if (!sshHostName.equals("")) {
+            reportMessage.append("Host Name: \"").append(sshHostName).append("\"");
+            reportMessage.append(" | SSH Port Number: \"").append(sshPortNumber).append("\"");
+            reportMessage.append(" | SSH Username: \"").append(sshUsername).append("\"");
+        } else {
+            reportMessage.append("Host Name: \"" + "localHost" + "\"");
+        }
+        if (sshKeyFileName != null && !sshKeyFileName.equals("")) {
+            reportMessage.append(" | Key File: \"").append(sshKeyFileFolderName).append(sshKeyFileName).append("\"");
+        }
+        reportMessage.append(" | Command: \"").append(command).append("\"");
+        reportMessage.append(" | Exit Status: \"").append(exitStatus).append("\"");
 
-	    // Capture logs and close readers
-	    String logLine = "";
-	    while ((logLine = reader.readLine()) != null) {
-		if (logBuilder.length() == 0) {
-		    logBuilder.append(logLine);
-		} else {
-		    logBuilder.append(System.lineSeparator() + logLine);
-		}
-	    }
-	    while ((logLine = errorReader.readLine()) != null) {
-		if (logBuilder.length() == 0) {
-		    logBuilder.append(logLine);
-		} else {
-		    logBuilder.append(System.lineSeparator() + logLine);
-		}
-	    }
-	    log = logBuilder.toString();
-	    reader.close();
-	    errorReader.close();
-
-	    // Retrieve the exit status of the executed command and destroy open sessions
-	    int exitStatus = 0;
-	    if (session != null && channelExec != null) {
-		exitStatus = channelExec.getExitStatus();
-		session.disconnect();
-	    } else if (p != null) {
-		exitStatus = p.exitValue();
-		p.destroy();
-	    }
-
-	    // Report Command exit status
-	    ReportManager.logDiscrete("Command Executed with exit status: [" + exitStatus + "]");
-	    if (exitStatus > 0) {
-		// Remote script exec error!
-	    }
-	} catch (IOException | NullPointerException | JSchException | InterruptedException e) {
-	    if (e.getMessage().contains("Cannot run program \"cd\": error=2, No such file or directory")) {
-		ReportManager.log("Failed to perform command [" + command
-			+ "] because you cannot use 'cd' with a local terminal. Try to do your action directly instead.");
-	    } else if (e.getMessage().contains("Connection refused (Connection refused)")) {
-		ReportManager.log("Failed to connect to remote machine [" + sshUsername + "@" + sshHostName + ":"
-			+ sshPortNumber + "] using this key ["
-			+ FileActions.getAbsolutePath(sshKeyFileFolderName, sshKeyFileName)
-			+ "]. Please confirm that this data is correct.");
-	    } else if (e.getMessage().contains("session is down")) {
-		ReportManager.log("Failed to perform command [" + command + "] session timed out after "
-			+ sessionTimeout + " milliseconds.");
-	    } else {
-		ReportManager.log(e);
-	    }
-	    failAction("performTerminalCommands", command, log);
-	    return log;
-	}
-
-	passAction("performTerminalCommands", command, log);
-	return log;
+        if (log != null) {
+            passAction(reportMessage.toString(), log);
+            return log;
+        } else {
+            return "";
+        }
     }
 
     public String performTerminalCommand(String command) {
-	return performTerminalCommands(Arrays.asList(command));
+        return performTerminalCommands(Collections.singletonList(command));
     }
 
     public String getSshHostName() {
-	return sshHostName;
+        return sshHostName;
     }
 
     public String getSshUsername() {
-	return sshUsername;
+        return sshUsername;
     }
 
     public String getSshKeyFileFolderName() {
-	return sshKeyFileFolderName;
+        return sshKeyFileFolderName;
     }
 
     public String getSshKeyFileName() {
-	return sshKeyFileName;
+        return sshKeyFileName;
     }
 
     public int getSshPortNumber() {
-	return sshPortNumber;
+        return sshPortNumber;
     }
 
     public String getDockerName() {
-	return dockerName;
+        return dockerName;
     }
 
     public String getDockerUsername() {
-	return dockerUsername;
+        return dockerUsername;
+    }
+
+    private void passAction(String actionName, String testData, String log) {
+        reportActionResult(actionName, testData, log, true);
+    }
+
+    private void passAction(String testData, String log) {
+        String actionName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        passAction(actionName, testData, log);
+    }
+
+    private void failAction(String actionName, String testData, Exception... rootCauseException) {
+        String message = reportActionResult(actionName, testData, null, false);
+        if (rootCauseException != null && rootCauseException.length >= 1) {
+            Assert.fail(message, rootCauseException[0]);
+        } else {
+            Assert.fail(message);
+        }
+    }
+
+    private void failAction(String testData, Exception... rootCauseException) {
+        String actionName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        failAction(actionName, testData, rootCauseException);
+    }
+
+    private Session createSSHsession() {
+        Session session = null;
+        String testData = sshHostName + ", " + sshPortNumber + ", " + sshUsername + ", " + sshKeyFileFolderName + ", "
+                + sshKeyFileName;
+        try {
+            Properties config = new Properties();
+            config.put("StrictHostKeyChecking", "no");
+            JSch jsch = new JSch();
+            if (sshKeyFileName != null && !sshKeyFileName.equals("")) {
+                jsch.addIdentity(FileActions.getAbsolutePath(sshKeyFileFolderName, sshKeyFileName));
+            }
+            session = jsch.getSession(sshUsername, sshHostName, sshPortNumber);
+            session.setConfig(config);
+            session.connect();
+            ReportManager.logDiscrete("Successfully created SSH Session.");
+        } catch (JSchException rootCauseException) {
+            ReportManagerHelper.log(rootCauseException);
+            failAction(testData, rootCauseException);
+        }
+        return session;
+    }
+
+    private String buildLongCommand(List<String> commands) {
+        StringBuilder command = new StringBuilder();
+        // build long command
+        for (Iterator<String> i = commands.iterator(); i.hasNext(); ) {
+            if (command.length() == 0) {
+                command.append(i.next());
+            } else {
+                command.append(" && ").append(i.next());
+            }
+        }
+
+        // refactor long command for dockerized execution
+        if (isDockerizedTerminal()) {
+            if (System.getProperty("dockerCommandTimeout") == null) {
+                PropertyFileManager.readPropertyFiles();
+            }
+            command.insert(0, "docker exec -u " + dockerUsername + " -i " + dockerName + " timeout "
+                    + Integer.parseInt(System.getProperty("dockerCommandTimeout")) + " sh -c '");
+            command.append("'");
+        }
+        return command.toString();
+    }
+
+    private List<Object> executeCommand(String command) {
+        BufferedReader reader = null;
+        BufferedReader errorReader = null;
+        Session remoteSession = null;
+        ChannelExec remoteChannelExecutor = null;
+        Process localProcess = null;
+        try {
+            if (isRemoteTerminal()) {
+                int sessionTimeout = Integer.parseInt(System.getProperty("shellSessionTimeout")) * 1000;
+                // remote execution
+                ReportManager.logDiscrete(
+                        "Attempting to perform the following command remotely. Command: [" + command + "]");
+                remoteSession = createSSHsession();
+                if (remoteSession != null) {
+                    remoteSession.setTimeout(sessionTimeout);
+                    remoteChannelExecutor = (ChannelExec) remoteSession.openChannel("exec");
+                    remoteChannelExecutor.setCommand(command);
+                    remoteChannelExecutor.connect();
+                    reader = new BufferedReader(new InputStreamReader(remoteChannelExecutor.getInputStream()));
+                    errorReader = new BufferedReader(new InputStreamReader(remoteChannelExecutor.getErrStream()));
+                }
+            } else {
+                // local execution
+                ReportManager
+                        .logDiscrete("Attempting to perform the following command locally. Command: [" + command + "]");
+                localProcess = Runtime.getRuntime().exec(command);
+                if (!unattended) {
+                    localProcess.waitFor();
+                }
+                reader = new BufferedReader(new InputStreamReader(localProcess.getInputStream()));
+                errorReader = new BufferedReader(new InputStreamReader(localProcess.getErrorStream()));
+            }
+        } catch (InterruptedException rootCauseException) {
+            ReportManagerHelper.log(rootCauseException);
+            failAction(command, rootCauseException);
+            Thread.currentThread().interrupt();
+        } catch (IOException | NullPointerException | JSchException rootCauseException) {
+            ReportManagerHelper.log(rootCauseException);
+            failAction(command, rootCauseException);
+        }
+        return Arrays.asList(remoteSession, remoteChannelExecutor, localProcess, reader, errorReader);
+    }
+
+    private String captureTerminalLogs(BufferedReader reader, BufferedReader errorReader, String command) {
+        StringBuilder logBuilder = new StringBuilder();
+        try {
+            String logLine;
+            logBuilder.append(readConsoleLogs(reader));
+            logBuilder.append(readConsoleLogs(errorReader));
+        } catch (IOException rootCauseException) {
+            ReportManagerHelper.log(rootCauseException);
+            failAction(command, rootCauseException);
+        }
+        return logBuilder.toString();
+    }
+
+    private String readConsoleLogs(BufferedReader errorReader) throws IOException {
+        StringBuilder logBuilder = new StringBuilder();
+        if (errorReader != null) {
+            String logLine;
+            while ((logLine = errorReader.readLine()) != null) {
+                if (logBuilder.length() == 0) {
+                    logBuilder.append(logLine);
+                } else {
+                    logBuilder.append(System.lineSeparator()).append(logLine);
+                }
+            }
+            errorReader.close();
+        }
+        return logBuilder.toString();
+    }
+
+    private int getExitStatus(Session remoteSession, ChannelExec remoteChannelExecutor, Process localProcess) {
+        int exitStatus = 0;
+        if (remoteSession != null && remoteChannelExecutor != null) {
+            exitStatus = remoteChannelExecutor.getExitStatus();
+            remoteSession.disconnect();
+        } else if (localProcess != null) {
+            exitStatus = localProcess.exitValue();
+            localProcess.destroy();
+        }
+        return exitStatus;
     }
 
 }
